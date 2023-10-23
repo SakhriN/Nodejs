@@ -10,7 +10,7 @@ function createDirectoryStructure(filePath, baseDirectory) {
 
     if (trimmedLine) {
       const directoryPath = path.join(baseDirectory, trimmedLine);
-      if (!fs.existsSync(directoryPath)) {
+      if (!fs.existsSync(drairectoryPath)) {
             fs.mkdirSync(directoryPath, { recursive: true });
       }
     }
