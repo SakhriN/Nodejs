@@ -12,8 +12,95 @@ const rl = readline.createInterface({
 });
 
 function printBoard() {
-    console.log(board.map(row => row.map(cell => cell.padEnd(3, ' ')).join('|')).join('\n' + '----+---+----\n'));
+  console.log(board.map(row => row.map(cell => cell.padEnd(3, ' ')).join('|')).join('\n' + '---+---+---\n'));
+}
+
+function resetGame() {
+  rl.question('Voulez-vous recommencer une nouvelle partie ? (Oui/Non) ', (answer) => {
+    if (answer.toLowerCase() === 'oui' || answer.toLowerCase() === 'o') {
+      for (let i = 0; i < boardSize; i++) {
+        for (let j = 0; j < boardSize; j++) {
+          board[i][j] = ' ';
+        }
+      }
+      currentPlayer = 'X';
+      saveGame();
+      isBotEnabled = false;
+      rl.question('Voulez-vous jouer contre un bot ? (Oui/Non) ', (answer) => {
+    
+        if (answer.toLowerCase() === 'oui' || answer.toLowerCase() === 'o') {
+          isBotEnabled = true;
+          console.log('Vous jouez contre le bot (O).');
+    
+        }
+        printBoard();
+        makeMove();
+      });
+    } else {
+      rl.close();
+    }
+  });
+}
+
+function makeMove() {
+  rl.question(`Joueur ${currentPlayer}, entrez la ligne et la colonne (par exemple, 1 2) : `, (input) => {
+    const [row, col] = input.split(' ').map(Number);
+    if (row >= 1 && row <= boardSize && col >= 1 && col <= boardSize && board[row - 1][col - 1] === ' ') {
+      board[row - 1][col - 1] = currentPlayer;
+      printBoard();
+      const winner = checkWinner();
+      if (winner) {
+        console.log(`Le joueur ${winner} a gagné !`);
+
+        resetGame()
+
+      } else if (isBoardFull()) {
+        console.log("Match nul !");
+
+        resetGame()
+
+      } else {
+        switchPlayer();
+        saveGame();
+        if (isBotEnabled && currentPlayer === 'O') {
+          makeBotMove();
+        } else {
+          makeMove();
+        }
+      }
+    } else {
+      console.log("Mouvement invalide. Réessayez.");
+      makeMove();
+    }
+  });
+}
+
+function makeBotMove() {
+  // Logic for the bot's move (simple random move in this example).
+  let row, col;
+  do {
+    row = Math.floor(Math.random() * boardSize);
+    col = Math.floor(Math.random() * boardSize);
+  } while (board[row][col] !== ' ');
+  board[row][col] = 'O';
+  printBoard();
+  const winner = checkWinner();
+  if (winner) {
+    console.log('Le bot (O) a gagné !');
+
+    resetGame()
+
+  } else if (isBoardFull()) {
+    console.log('Match nul !');
+
+resetGame()
+
+  } else {
+    switchPlayer();
+    saveGame();
+    makeMove();
   }
+}
 
 function checkWinner() {
   for (let i = 0; i < boardSize; i++) {
@@ -32,6 +119,8 @@ function checkWinner() {
   }
   return null;
 }
+
+
 
 function isBoardFull() {
   for (let row of board) {
@@ -65,108 +154,12 @@ function loadGame() {
   }
 }
 
+
+
 function playGame() {
   loadGame();
   printBoard();
-
-  function makeBotMove() {
-    // Logic for the bot's move (simple random move in this example).
-    let row, col;
-    do {
-      row = Math.floor(Math.random() * boardSize);
-      col = Math.floor(Math.random() * boardSize);
-    } while (board[row][col] !== ' ');
-    board[row][col] = 'O';
-    printBoard();
-    const winner = checkWinner();
-    if (winner) {
-      console.log('Le bot (O) a gagné !');
-      rl.question('Voulez-vous recommencer une nouvelle partie ? (Oui/Non) ', (answer) => {
-        if (answer.toLowerCase() === 'oui'| answer.toLowerCase() === 'o') {
-          resetGame();
-        } else {
-          rl.close();
-        }
-      });
-    } else if (isBoardFull()) {
-      console.log('Match nul !');
-      rl.question('Voulez-vous recommencer une nouvelle partie ? (Oui/Non) ', (answer) => {
-        if (answer.toLowerCase() === 'oui'| answer.toLowerCase() === 'o') {
-          resetGame();
-        } else {
-          rl.close();
-        }
-      });
-    } else {
-      switchPlayer();
-      saveGame();
-      makeMove();
-    }
-  }
-
-  function makeMove() {
-    rl.question(`Joueur ${currentPlayer}, entrez la ligne et la colonne (par exemple, 1 2) : `, (input) => {
-      const [row, col] = input.split(' ').map(Number);
-      if (row >= 1 && row <= boardSize && col >= 1 && col <= boardSize && board[row - 1][col - 1] === ' ') {
-        board[row - 1][col - 1] = currentPlayer;
-        printBoard();
-        const winner = checkWinner();
-        if (winner) {
-          console.log(`Le joueur ${winner} a gagné !`);
-          rl.question('Voulez-vous recommencer une nouvelle partie ? (Oui/Non) ', (answer) => {
-            if (answer.toLowerCase() === 'oui'| answer.toLowerCase() === 'o') {
-              resetGame();
-            } else {
-              rl.close();
-            }
-          });
-        } else if (isBoardFull()) {
-          console.log("Match nul !");
-          rl.question('Voulez-vous recommencer une nouvelle partie ? (Oui/Non) ', (answer) => {
-            if (answer.toLowerCase() === 'oui'| answer.toLowerCase() === 'o') {
-              resetGame();
-            } else {
-              rl.close();
-            }
-          });
-        } else {
-          switchPlayer();
-          saveGame();
-          if (isBotEnabled && currentPlayer === 'O') {
-            makeBotMove();
-          } else {
-            makeMove();
-          }
-        }
-      } else {
-        console.log("Mouvement invalide. Réessayez.");
-        makeMove();
-      }
-    });
-  }
-
-  function resetGame() {
-    for (let i = 0; i < boardSize; i++) {
-      for (let j = 0; j < boardSize; j++) {
-        board[i][j] = ' ';
-      }
-    }
-    currentPlayer = 'X';
-    saveGame();
-    isBotEnabled = false;
-    rl.question('Voulez-vous jouer contre un bot ? (Oui/Non) ', (answer) => {
-      if (answer.toLowerCase() === 'oui'| answer.toLowerCase() === 'o') {
-        isBotEnabled = true;
-        console.log('Vous jouez contre le bot (O).');
-      }
-      printBoard();
-      makeMove();
-    });
-  }
-
   resetGame();
 }
-
-
 
 playGame();
